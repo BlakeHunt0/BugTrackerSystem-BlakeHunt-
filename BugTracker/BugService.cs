@@ -37,6 +37,11 @@ namespace BugTracker
                 return false;
             }
 
+            if (newStatus == Status.Closed)
+            {
+                bug.DateClosed = DateTime.Now;
+            }
+
             bug.UpdateBugStatus(newStatus);
             return true;
         }

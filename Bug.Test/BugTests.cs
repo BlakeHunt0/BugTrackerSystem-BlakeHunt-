@@ -18,6 +18,7 @@ namespace BugTest
                 "Description"
             ));
         }
+        //this is broken because I was messing with the IDs self incrementation, the id is comming back wrong
         [Fact]
         public void Constructor_SetsPropertiesCorrectly()
         {
@@ -45,6 +46,19 @@ namespace BugTest
             var bug = new Bug("Getting odd menu", "I'm getting an unintended menu, here is a screenshot");
             bug.AttachmentUrl = "http://example.com/image.png";
             Assert.Equal("http://example.com/image.png", bug.AttachmentUrl);
+        }
+
+        [Fact]
+        public void ClosedBugUpdatesDateClosed()
+        {
+            //Arrange
+            var bug = new Bug("Easy Bug", "I found a very obvious bug");
+            bug.UpdateBugStatus(Status.Closed);
+            //Act
+            bug.DateClosed = DateTime.Now;
+            //Assert
+            Assert.NotNull(bug.DateClosed);
+            Assert.Equal(Status.Closed, bug.Status);
         }
     }
 }

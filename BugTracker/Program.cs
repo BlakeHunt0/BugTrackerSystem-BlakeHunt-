@@ -121,9 +121,14 @@ namespace BugTracker
             ShowMenu();
         }
         //this should only be for admins or developers
-        private static void UpdateBug()
+        private static void UpdateBug(int userRoleInt, int bugId)
         {
-
+            //make sure that the user is an admin or developer
+            if (userRoleInt == 2 || userRoleInt == 3)
+            {
+                Console.WriteLine("What would you like to do to bug:" + bugId + "?");
+                Console.WriteLine("1. Close Bug");
+            }
         }
         //everyone can get this menu, but general users can only delete their own bugs
         public static void DeleteBug()

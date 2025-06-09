@@ -23,6 +23,10 @@ namespace BugTracker
         //image attachment
         public string? AttachmentUrl { get; set; }
 
+        //DateClosed feild
+        //I'm going to have to make the update bug method
+        public DateTime? DateClosed { get; set; } = null;
+
         public List<Comment> Comments { get; set; } = new List<Comment>();
 
         public Bug(string title, string description)
