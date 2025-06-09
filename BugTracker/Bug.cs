@@ -20,6 +20,9 @@ namespace BugTracker
         public Status Status { get; set; } = Status.Open;
         public DateTime UploadDate { get; set; } = DateTime.Now;
 
+        //image attachment
+        public string? AttachmentUrl { get; set; }
+
         public List<Comment> Comments { get; set; } = new List<Comment>();
 
         public Bug(string title, string description)

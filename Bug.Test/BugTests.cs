@@ -38,5 +38,13 @@ namespace BugTest
         {
 
         }
+
+        [Fact]
+        public void CanAddAttachmentUrl()
+        {
+            var bug = new Bug("Getting odd menu", "I'm getting an unintended menu, here is a screenshot");
+            bug.AttachmentUrl = "http://example.com/image.png";
+            Assert.Equal("http://example.com/image.png", bug.AttachmentUrl);
+        }
     }
 }
