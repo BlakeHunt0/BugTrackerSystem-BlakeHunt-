@@ -5,16 +5,18 @@ namespace BugTracker
 {
     public class Program
     {
+        /// <summary>
+        /// Starts the Program
+        /// </summary>
+        /// <param name="args"></param>
         static void Main(string[] args)
         {
             BugService bugService = new BugService();
             UserService userService = new UserService();
 
             User user = Login(userService);
-            ShowMenu(bugService, user);
+            ShowMenu(bugService, userService, user);
         }
-
-        //TODO: add XML documentation to the methods and classes
         /// <summary>
         /// Asks for a username and password, 
         /// checks if that user exists, 
@@ -53,55 +55,107 @@ namespace BugTracker
         }
 
         //----------------Main Menu----------------
-        private static void ShowMenu(BugService currBugSer, User user)
+        /// <summary>
+        /// Show the main menu for the Bug Tracker application.
+        /// </summary>
+        /// <param name="bugSer"></param>
+        /// <param name="user"></param>
+        private static void ShowMenu(BugService bugSer, UserService userSer, User user)
         {
             Console.Clear();
 
             Console.WriteLine(
-                "1. Report Bug\n" +
+                "\nMenu" +
+                "\n==============================" +
+                "\n1. Report Bug\n" +
                 "2. View Bugs\n" +
                 "3. Update Bug\n" +
                 "4. Delete Bug\n" +
-                "5. Add Comment\n" +
-                "6. Exit\n"
+                "5. Exit\n"
             );
+
+            if (user.UserRole == Role.Admin || user.UserRole == Role.Developer)
+            {
+                Console.WriteLine(
+                    "\nDeveloper Menu" +
+                    "\n==============================" +
+                    "\n6. Assign Severity to Bug"
+                );
+                
+                if (user.UserRole == Role.Admin)
+                {
+                    Console.WriteLine(
+                        "\nAdmin Menu" +
+                        "\n==============================" +
+                        "\n7. View All Users" +
+                        "\n8. Assign Developer to Bug" +
+                        "\n9. Promote User To Role"
+                    );
+                }
+
+            }
 
             string MenuChoice = Console.ReadLine();
 
+            //general user menu options
             if (MenuChoice == "1")
             {
                 Console.Clear();
-                ReportBug(currBugSer, user);
+                ReportBug(bugSer, userSer, user);
             }
             if (MenuChoice == "2")
             {
                 Console.Clear();
-                ViewBugs(currBugSer, user);
+                ViewBugs(bugSer, userSer, user);
             }
             if (MenuChoice == "3")
             {
                 Console.Clear();
-                UpdateBug(currBugSer, user);
+                UpdateBug(bugSer, user);
             }
             if (MenuChoice == "4")
             {
                 Console.Clear();
-                UpdateBug(currBugSer, user);
-            }
-            if (MenuChoice == "5")
-            {
-                Console.Clear();
-                DeleteBug(currBugSer, user);
+                DeleteBug(bugSer, userSer, user);
             }
 
-            if (MenuChoice == "6")
+            if (MenuChoice == "5")
             {
                Environment.Exit(0);
+            }
+
+            //dev options
+            if (MenuChoice == "6" && (user.UserRole == Role.Developer || user.UserRole == Role.Admin))
+            {
+                Console.Clear();
+                AssignSeverity(bugSer, userSer, user);
+            }
+
+            //admin options
+            if (MenuChoice == "7" && user.UserRole == Role.Admin)
+            {
+                Console.Clear();
+                ViewAllUsers();
+            }
+            if (MenuChoice == "8" && user.UserRole == Role.Admin)
+            {
+                Console.Clear();
+                AssignDeveloperToBug();
+            }
+            if (MenuChoice == "9" && user.UserRole == Role.Admin)
+            {
+                Console.Clear();
+                PromoteUserToRole();
             }
         }
 
         //----------------MENU CHOICES---------------
-        private static void ReportBug(BugService currBugSer, User user)
+        /// <summary>
+        /// Report a new bug.
+        /// </summary>
+        /// <param name="bugSer"></param>
+        /// <param name="user"></param>
+        private static void ReportBug(BugService bugSer, UserService userSer, User user)
         {
             Console.Clear();
 
@@ -114,12 +168,17 @@ namespace BugTracker
 
             int userId = user.Id;
 
-            currBugSer.AddBug(Title, Description, userId);
+            bugSer.AddBug(Title, Description, userId);
 
             Console.Clear();
-            ShowMenu(currBugSer, user);
+            ShowMenu(bugSer, userSer, user);
         }
-        private static void ViewBugs(BugService currBugSer, User user)
+        /// <summary>
+        /// Run a menu of diferent ways to view the bugs
+        /// </summary>
+        /// <param name="bugSer"></param>
+        /// <param name="user"></param>
+        private static void ViewBugs(BugService bugSer, UserService userSer, User user)
         {
             Console.WriteLine(
                 "1. View All Bugs\n" +
@@ -130,20 +189,19 @@ namespace BugTracker
 
             if (viewChoice == "1")
             {
-                Console.Clear();
-                Console.WriteLine("Bugs:\n================================");
+                PrintBugs(bugSer, userSer, user);
 
-                foreach (var bug in currBugSer.GetAllBugs())
+                Console.WriteLine("Enter bug ID to get bug details");
+
+                int input;
+                bool isValid = int.TryParse((Console.ReadLine()), out input);
+
+                if (isValid)
                 {
-                    Console.WriteLine(
-                        bug.Id + ": " + bug.Title + "\n" + 
-                        bug.Description + "\n" +
-                        "Uploaded by - " + bug.Author + "\n"
-                    );
+                    PrintBugDetails(bugSer, userSer, user, input);
+                    CommentMenu(bugSer, userSer, user, input);
                 }
-
                 Console.ReadLine();
-                //TODO: allow users to pick a bug to view in detail
             }
             if (viewChoice == "2")
             {
@@ -154,7 +212,7 @@ namespace BugTracker
 
                 Console.Clear();
 
-                Bug lookedBug = currBugSer.GetBugById(int.Parse(bugId));
+                Bug lookedBug = bugSer.GetBugById(int.Parse(bugId));
 
                 Console.WriteLine(
                     lookedBug.Title + " : " +  lookedBug.Description + "\n");
@@ -167,27 +225,11 @@ namespace BugTracker
                     Console.WriteLine(comment + "\n");
                 }
 
-                Console.WriteLine("\n\n\n1. Add Comment \n");
-                Console.WriteLine("2. Back");
-
-                string input = Console.ReadLine();
-
-                if(input == "1")
-                {
-                    Console.WriteLine("Please Write Comment");
-                    string Text = Console.ReadLine();
-                    Comment newComment = new Comment(user.Id, Text);
-                    //comments should also have bugId
-                    //TODO: add this comment to the bug that it belongs to
-                }
-                else
-                {
-                    ViewBugs(currBugSer, user);
-                }
+                CommentMenu(bugSer, userSer, user, lookedBug.Id);
             }
 
             Console.Clear();
-            ShowMenu(currBugSer, user);
+            ShowMenu(bugSer, userSer, user);
         }
         private static void UpdateBug(BugService currBugSer, User user)
         {
@@ -284,8 +326,9 @@ namespace BugTracker
                     }
                 }
             }
+            ShowMenu(currBugSer, userSer, user);
         }
-        private static void DeleteBug(BugService currBugSer, User user)
+        private static void DeleteBug(BugService currBugSer, UserService userSer, User user)
         {
             if (user.UserRole == Role.Admin || user.UserRole == Role.Developer)
             {
@@ -345,7 +388,127 @@ namespace BugTracker
             }
 
             Console.Clear();
-            ShowMenu(currBugSer, user);
+            ShowMenu(currBugSer, userSer, user);
+        }
+        //----------------- Developer Menus -----------------
+        public static void AssignSeverity(BugService bugSer, UserService userSer, User user)
+        {
+            Console.Clear();
+            PrintBugs(bugSer, userSer, user);
+
+            Console.WriteLine("\nWhich bug do you want to assign a severity level to?");
+
+            int input;
+            bool isValid = int.TryParse((Console.ReadLine()), out input);
+
+            if (isValid)
+            {
+                Console.Clear();
+                Console.WriteLine("What Severity do you want to assign to bug\n " + input + "?" +
+                    "\n1. Low" +
+                    "\n2. Medium" +
+                    "\n3. High" +
+                    "\n4. Critical"
+                );
+
+                int bugId = input;
+
+                bool isValidSeverity = int.TryParse(Console.ReadLine(), out input);
+
+                if (isValidSeverity && (input > 0 && input < 5))
+                {
+                    bugSer.AssignSeverityToBug(bugId, input);
+                    Console.Clear();
+                    Console.WriteLine("Severity level assigned successfully to bug " + bugId);
+                    Console.ReadLine();
+                }
+                else
+                {
+                    Console.WriteLine("That is not a valid severity level");
+                    Console.ReadLine();
+                }
+            }
+            ShowMenu(bugSer, userSer, user);
+        }
+
+        //----------------- Admin Menus -----------------
+        public static void ViewAllUsers(BugService bugSer, UserService userSer, User user)
+        {
+            ShowMenu(bugSer, userSer, user);
+        }
+        public static void AssignDeveloperToBug(BugService bugSer, UserService userSer, User user)
+        {
+
+        }
+        public static void PromoteUserToRole(BugService bugSer, UserService userSer, User user)
+        {
+
+        }
+
+        //----------------- Repeat Menus -----------------
+        private static void PrintBugs(BugService bugSer, UserService userSer, User user)
+        {
+            Console.Clear();
+            Console.WriteLine("Bugs:\n================================");
+            foreach (var bug in bugSer.GetAllBugs())
+            {
+                Console.WriteLine(
+                    bug.Id + ": " + bug.Title + "\n" +
+                    bug.Description + "\n" +
+                    "Uploaded by - " + bug.Author + "\n"
+                );
+
+                if (user.UserRole == Role.Admin || user.UserRole == Role.Developer)
+                {
+                    Console.WriteLine(
+                        "\nStatus: " + bug.Status + 
+                        "\nAssigned to: " + bug.AssignedTo
+                    );
+                }
+            }
+        }
+        private static void PrintBugDetails(BugService bugser, UserService userSer, User user, int bugId)
+        {
+            Console.Clear();
+
+            Bug bug = bugser.GetBugById(bugId);
+            Console.WriteLine(
+                    bug.Id + ": " + bug.Title + "\n" +
+                    bug.Description + "\n" +
+                    "Uploaded by - " + bug.Author + "\n"
+            );
+            if (user.UserRole == Role.Admin || user.UserRole == Role.Developer)
+            {
+                Console.WriteLine("Assigned to: " + bug.AssignedTo + "\n");
+                Console.WriteLine("Severity Level: " + bug.Severity + "\n");
+                Console.WriteLine("Status: " + bug.Status + "\n");
+                if (bug.Status == Status.Closed)
+                {
+                    Console.WriteLine("Date Closed: " + bug.DateClosed.Value.ToString("g") + "\n");
+                }
+            }
+            foreach (var comment in bug.Comments)
+            {
+                Console.WriteLine("Comment by " + userSer.GetUserById(comment.AuthorId).Name + ": " + comment.Text + "\n");
+            }
+        }
+        private static void CommentMenu(BugService bugSer, UserService userSer, User user, int bugId)
+        {
+            Console.WriteLine("\n\n\n1. Add Comment \n");
+            Console.WriteLine("2. Back");
+
+            string input = Console.ReadLine();
+
+            if (input == "1")
+            {
+                Console.WriteLine("Please Write Comment");
+                string text = Console.ReadLine();
+                bugSer.AddCommentToBug(bugId, user.Id, text);
+            }
+            else
+            {
+                ViewBugs(bugSer, userSer, user);
+            }
         }
     }
 

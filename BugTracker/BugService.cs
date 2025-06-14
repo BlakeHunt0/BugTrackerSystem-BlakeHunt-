@@ -27,7 +27,6 @@ namespace BugTracker
         {
             return _bugs.FirstOrDefault(b => b.Id == id);
         }
-        //TODO: bug.Status can be reverted to a previous version, try to fix this.
         public bool CloseBug(int id)
         {
             var bug = _bugs.FirstOrDefault(b => b.Id == id);
@@ -60,6 +59,38 @@ namespace BugTracker
             {
                 bug.Status = Status.Closed;
                 bug.DateClosed = DateTime.Now;
+            }
+        }
+        public void AssignSeverityToBug(int bugId, int severity)
+        {
+            Bug bug = GetBugById(bugId);
+            if (bug != null)
+            {
+                if (severity == 1)
+                {
+                    bug.Severity = SeverityLevel.Low;
+                }
+                if (severity == 2)
+                {
+                    bug.Severity = SeverityLevel.Medium;
+                }
+                if (severity == 3)
+                {
+                    bug.Severity = SeverityLevel.High;
+                }
+                if (severity == 4)
+                {
+                    bug.Severity = SeverityLevel.Critical;
+                }
+            }
+        }
+        public void AddCommentToBug(int bugId, int authorId, string text)
+        {
+            Bug bug = GetBugById(bugId);
+            if (bug != null)
+            {
+                Comment comment = new Comment(authorId, text);
+                bug.Comments.Add(comment);
             }
         }
     }
