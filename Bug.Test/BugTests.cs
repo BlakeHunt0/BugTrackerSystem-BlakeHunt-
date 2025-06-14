@@ -6,23 +6,26 @@ namespace BugTest
 {
     public class BugTests
     {
+        //describe the steps to the tests, this is a requirement
         [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData("    ")]
-        //this will test every string above as a title, making three tests
         public void Constructor_ThrowsExceptionWhenTitleIsInvalid(string invalidTitle)
         {
             Assert.Throws<ArgumentException>(() => new Bug(
                 invalidTitle,
-                "Description"
+                "Description",
+                3
             ));
         }
+        //this is broken because I was messing with the IDs self incrementation, the id is comming back wrong
+        //TODO: fix this
         [Fact]
         public void Constructor_SetsPropertiesCorrectly()
         {
             //Arrange and Act
-            var bug = new Bug("Failed Login", "Description");
+            var bug = new Bug("Failed Login", "Description", 2);
             //Assert
             Assert.Equal(1, bug.Id);
             Assert.Equal("Failed Login", bug.Title);
@@ -31,7 +34,6 @@ namespace BugTest
         }
 
         //TODO: make this test work
-        //how do i make this work if there is no data?
         //TODO: add in built bug data List<>
         [Fact]
         public void ReturnsExistingId()
@@ -42,9 +44,22 @@ namespace BugTest
         [Fact]
         public void CanAddAttachmentUrl()
         {
-            var bug = new Bug("Getting odd menu", "I'm getting an unintended menu, here is a screenshot");
+            var bug = new Bug("Getting odd menu", "I'm getting an unintended menu, here is a screenshot", 2);
             bug.AttachmentUrl = "http://example.com/image.png";
             Assert.Equal("http://example.com/image.png", bug.AttachmentUrl);
+        }
+
+        [Fact]
+        public void ClosedBugUpdatesDateClosed()
+        {
+            //Arrange
+            var bug = new Bug("Easy Bug", "I found a very obvious bug", 2);
+            bug.UpdateBugStatus(Status.Closed);
+            //Act
+            bug.DateClosed = DateTime.Now;
+            //Assert
+            Assert.NotNull(bug.DateClosed);
+            Assert.Equal(Status.Closed, bug.Status);
         }
     }
 }

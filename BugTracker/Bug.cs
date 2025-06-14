@@ -21,25 +21,32 @@ namespace BugTracker
         public DateTime UploadDate { get; set; } = DateTime.Now;
 
         //image attachment
+        //This doesn't get implimented into the bug report system.
         public string? AttachmentUrl { get; set; }
+
+        public DateTime? DateClosed { get; set; } = null;
+
+        public int AuthorId { get; set; }
+        public string Author { get; set; }
 
         public List<Comment> Comments { get; set; } = new List<Comment>();
 
-        public Bug(string title, string description)
+        public Bug(string title, string description, int authorId)
         {
-            //I don't know if both parameters are needed
+            UserService userService = new UserService();
+            User user = userService.GetUserById(authorId);
+
             if (string.IsNullOrEmpty(title) || string.IsNullOrWhiteSpace(title))
             {
                 throw new ArgumentException("Bug title cannot be empty or white space.", nameof(title));
             }
-
-            //this goes 123045678... zero being the first bug reported through the app, following bugs are given the correct IDs
             Id = _nextId++;
             Title = title;
             Description = description;
+            AuthorId = authorId;
+            Author = user.Name;
             Status = Status.Open;
             UploadDate = DateTime.Now;
-            //TODO: get the reporters account username
         }
 
         public void UpdateBugStatus(Status newStatus)
@@ -70,8 +77,15 @@ namespace BugTracker
 
     public class Comment
     {
-        public string Author { get; set; }
-        public string Data { get; set; }
+        public int AuthorId { get; set; }
+        public string Text { get; set; }
         public DateTime cmtDate { get; set; }
+
+        public Comment(int authorId, string text)
+        {
+            AuthorId = authorId;
+            Text = text;
+            cmtDate = DateTime.Now;
+        }
     }
 }
