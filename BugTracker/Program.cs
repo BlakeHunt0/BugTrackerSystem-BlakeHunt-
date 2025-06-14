@@ -1,4 +1,5 @@
-﻿using System.Reflection.Metadata;
+﻿using System;
+using System.Net.NetworkInformation;
 
 namespace BugTracker
 {
@@ -6,29 +7,25 @@ namespace BugTracker
     {
         static void Main(string[] args)
         {
-            //TODO: make a better list initializer for bugs, and later users.
-            //Stanky way to init the bugs list
             BugService bugService = new BugService();
+            UserService userService = new UserService();
 
-            Console.WriteLine("Bugs:\n================================");
-
-            foreach (var bug in bugService.GetAllBugs())
-            {
-                Console.WriteLine(bug.Id + ": " + bug.Title + ":    " + bug.Description);
-            }
-            Console.Clear();
-
-            //Login();
-            ShowMenu();
+            User user = Login(userService);
+            ShowMenu(bugService, user);
         }
 
-        //Menus
-        public static int Login()
+        //TODO: add XML documentation to the methods and classes
+        /// <summary>
+        /// Asks for a username and password, 
+        /// checks if that user exists, 
+        /// then returns the user with matching credentials.
+        /// </summary>
+        /// <returns></returns>
+        public static User Login(UserService userService)
         {
-            //this is sort of a trick, this might count as a magic number. Think about changing later.
-            int userId = 0;
+            User curUser = null;
 
-            while (userId == 0)
+            while (curUser == null)
             {
                 Console.Clear();
                 Console.WriteLine("Please enter your username: ");
@@ -36,43 +33,65 @@ namespace BugTracker
                 Console.WriteLine("Please enter your password: ");
                 string inputpassword = Console.ReadLine();
 
-                User curUser = User.users.FirstOrDefault(u => u.Name == inputname && u.Password == inputpassword);
+                curUser = userService.GetUserByCred(inputname, inputpassword);
 
                 if (curUser != null)
                 {
-                    userId = curUser.Id;
+                    Console.Clear();
                     Console.WriteLine($"Welcome {curUser.Name}!");
-                    ShowMenu();
+                    Console.ReadLine();
                 }
                 else
                 {
+                    Console.Clear();
                     Console.WriteLine("Invalid username or password. Please try again.");
+                    Console.ReadLine();
                     break;
                 }
             }
-
-            return userId;
+            return curUser;
         }
-        private static void ShowMenu()
+
+        //----------------Main Menu----------------
+        private static void ShowMenu(BugService currBugSer, User user)
         {
-            Console.WriteLine("1. Report Bug");
-            Console.WriteLine("2. View Bugs");
-            Console.WriteLine("3. Update Bug");
-            Console.WriteLine("4. Delete Bug");
-            Console.WriteLine("5. Add Comment");
-            Console.WriteLine("6. Exit");
+            Console.Clear();
+
+            Console.WriteLine(
+                "1. Report Bug\n" +
+                "2. View Bugs\n" +
+                "3. Update Bug\n" +
+                "4. Delete Bug\n" +
+                "5. Add Comment\n" +
+                "6. Exit\n"
+            );
 
             string MenuChoice = Console.ReadLine();
 
             if (MenuChoice == "1")
             {
                 Console.Clear();
-                ReportBug();
+                ReportBug(currBugSer, user);
             }
             if (MenuChoice == "2")
             {
                 Console.Clear();
-                ViewBugs();
+                ViewBugs(currBugSer, user);
+            }
+            if (MenuChoice == "3")
+            {
+                Console.Clear();
+                UpdateBug(currBugSer, user);
+            }
+            if (MenuChoice == "4")
+            {
+                Console.Clear();
+                UpdateBug(currBugSer, user);
+            }
+            if (MenuChoice == "5")
+            {
+                Console.Clear();
+                DeleteBug(currBugSer, user);
             }
 
             if (MenuChoice == "6")
@@ -81,12 +100,9 @@ namespace BugTracker
             }
         }
 
-        //Menu Choices
-        private static void ReportBug()
+        //----------------MENU CHOICES---------------
+        private static void ReportBug(BugService currBugSer, User user)
         {
-            //look into a way of getting this line to work across program.cs
-            BugService bugService = new BugService();
-
             Console.Clear();
 
             Console.WriteLine("Enter Title");
@@ -96,48 +112,240 @@ namespace BugTracker
             Console.WriteLine("Enter Description");
             string Description = Console.ReadLine();
 
-            //TODO: add the uploading user to the new bug.
+            int userId = user.Id;
 
-            bugService.AddBug(Title, Description);
+            currBugSer.AddBug(Title, Description, userId);
 
             Console.Clear();
-            ShowMenu();
+            ShowMenu(currBugSer, user);
         }
-        private static void ViewBugs()
+        private static void ViewBugs(BugService currBugSer, User user)
         {
-            BugService bugService = new BugService();
+            Console.WriteLine(
+                "1. View All Bugs\n" +
+                "2. View Bug by ID\n"
+            );
 
-            Console.WriteLine("Bugs:\n================================");
+            string viewChoice = Console.ReadLine();
 
-            foreach (var bug in bugService.GetAllBugs())
+            if (viewChoice == "1")
             {
-                Console.WriteLine(bug.Id + ": " + bug.Title + ":    " + bug.Description);
+                Console.Clear();
+                Console.WriteLine("Bugs:\n================================");
+
+                foreach (var bug in currBugSer.GetAllBugs())
+                {
+                    Console.WriteLine(
+                        bug.Id + ": " + bug.Title + "\n" + 
+                        bug.Description + "\n" +
+                        "Uploaded by - " + bug.Author + "\n"
+                    );
+                }
+
+                Console.ReadLine();
+                //TODO: allow users to pick a bug to view in detail
+            }
+            if (viewChoice == "2")
+            {
+                Console.Clear();
+                Console.WriteLine("Enter Bug ID");
+
+                string bugId = Console.ReadLine();
+
+                Console.Clear();
+
+                Bug lookedBug = currBugSer.GetBugById(int.Parse(bugId));
+
+                Console.WriteLine(
+                    lookedBug.Title + " : " +  lookedBug.Description + "\n");
+                if (lookedBug.Author != null)
+                {
+                    Console.WriteLine(lookedBug.Author + "\n");
+                }
+                foreach (var comment in lookedBug.Comments)
+                {
+                    Console.WriteLine(comment + "\n");
+                }
+
+                Console.WriteLine("\n\n\n1. Add Comment \n");
+                Console.WriteLine("2. Back");
+
+                string input = Console.ReadLine();
+
+                if(input == "1")
+                {
+                    Console.WriteLine("Please Write Comment");
+                    string Text = Console.ReadLine();
+                    Comment newComment = new Comment(user.Id, Text);
+                    //comments should also have bugId
+                    //TODO: add this comment to the bug that it belongs to
+                }
+                else
+                {
+                    ViewBugs(currBugSer, user);
+                }
             }
 
-            Console.ReadLine();
-
-            //it has occured to me that these menus are layering atop eachother, which might cause problems.
             Console.Clear();
-            ShowMenu();
+            ShowMenu(currBugSer, user);
         }
-        //this should only be for admins or developers
-        private static void UpdateBug(int userRoleInt, int bugId)
+        private static void UpdateBug(BugService currBugSer, User user)
         {
-            //make sure that the user is an admin or developer
-            if (userRoleInt == 2 || userRoleInt == 3)
+            if (user.UserRole == Role.Admin || user.UserRole == Role.Developer)
             {
-                Console.WriteLine("What would you like to do to bug:" + bugId + "?");
-                Console.WriteLine("1. Close Bug");
+                Console.WriteLine("What is the ID of the bug you are trying to change");
+
+                int bugId = int.Parse(Console.ReadLine());
+
+                Console.Clear();
+                Console.WriteLine("What would you like to do to bug:    " + bugId + "?");
+                Console.WriteLine(
+                    "\n" +
+                    "Close Bug\n" +
+                    "Advance Bug Status\n"
+                );
+
+                Console.ReadLine();
+
+                Bug bug = currBugSer.GetBugById(bugId);
+                int input = int.Parse(Console.ReadLine());
+
+                if (input == 1)
+                {
+                    bug.Status = Status.Closed;
+                }
+                if (input == 2)
+                {
+                    currBugSer.NextStatus(bugId);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Your Bugs: \n");
+
+                foreach (var bug in currBugSer.GetAllBugs().Where(b => b.AuthorId == user.Id))
+                {
+                    Console.WriteLine(
+                        bug.Id + ": " + bug.Title + "\n" +
+                        bug.Description + "\n" +
+                        "Uploaded by - " + user.Name + "\n"
+                    );
+                }
+
+                Console.WriteLine("Which bug would you like to edit");
+                int bugId = int.Parse(Console.ReadLine());
+
+                Bug bugToEdit = currBugSer.GetBugById(bugId);
+
+                Console.WriteLine("\nWhat would you like to do\n");
+                Console.WriteLine(
+                    "1. Edit Bug Title\n" +
+                    "2. Edit Bug Description\n"
+                );
+
+                int input = int.Parse(Console.ReadLine());
+
+                if (input == 1)
+                {
+                    Console.Clear();
+                    Console.WriteLine("Input new title: \n");
+
+                    string title = Console.ReadLine();
+
+                    if (!string.IsNullOrWhiteSpace(title))
+                    {
+                        bugToEdit.Title = title;
+                        Console.WriteLine("Title updated successfully");
+                        Console.ReadLine();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Title cannot be empty or whitespace");
+                        Console.ReadLine();
+                    }
+                }
+                if (input == 2)
+                {
+                    Console.Clear();
+                    Console.WriteLine("Input new description");
+
+                    string description = Console.ReadLine();
+
+                    if (!string.IsNullOrWhiteSpace(description))
+                    {
+                        bugToEdit.Description = description;
+                        Console.WriteLine("Description updated successfully");
+                        Console.ReadLine();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Description cannot be empty or whitespace");
+                        Console.ReadLine();
+                    }
+                }
             }
         }
-        //everyone can get this menu, but general users can only delete their own bugs
-        public static void DeleteBug()
+        private static void DeleteBug(BugService currBugSer, User user)
         {
+            if (user.UserRole == Role.Admin || user.UserRole == Role.Developer)
+            {
+                foreach (var bug in currBugSer.GetAllBugs())
+                {
+                    Console.WriteLine(
+                        bug.Id + ": " + bug.Title + "\n" +
+                        bug.Description + "\n" +
+                        "Uploaded by - " + user.Name + "\n"
+                    );
+                }
 
-        }
-        public static void AddComment()
-        {
+                Console.WriteLine("What bug.id would you like to delete");
+                int bugId = int.Parse(Console.ReadLine());
 
+                Bug bugToDelete = currBugSer.GetBugById(bugId);
+                if (bugToDelete != null)
+                {
+                    currBugSer.GetAllBugs().Remove(bugToDelete);
+                    Console.WriteLine("Bug deleted successfully");
+                    Console.ReadLine();
+                }
+                else
+                {
+                    Console.WriteLine("This Bug does not exist");
+                    Console.ReadLine();
+                }
+            }
+            if (user.UserRole == Role.GeneralUser)
+            {
+                Console.WriteLine("Your Bugs: \n");
+                foreach (var bug in currBugSer.GetAllBugs().Where(Bug => Bug.AuthorId == user.Id))
+                {
+                    Console.WriteLine(
+                        "\n-------------------------\n" +
+                        bug.Id + ": " + bug.Title + ": \n" + 
+                        bug.Description + 
+                        "\n-------------------------\n"
+                    );
+                    Console.WriteLine("Which bug would you like to delete?");
+
+                    int bugId = int.Parse(Console.ReadLine());
+
+                    Bug bugToDelete = currBugSer.GetBugById(bugId);
+                    if (bugToDelete != null)
+                    {
+                        currBugSer.GetAllBugs().Remove(bugToDelete);
+                        Console.WriteLine("Bug deleted successfully");
+                        Console.ReadLine();
+                    }
+                    else
+                    {
+                        Console.WriteLine("This Bug does not exist");
+                        Console.ReadLine();
+                    }
+                }
+            }
+
+            Console.Clear();
+            ShowMenu(currBugSer, user);
         }
     }
 

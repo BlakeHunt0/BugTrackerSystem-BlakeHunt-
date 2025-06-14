@@ -9,20 +9,30 @@ namespace BugTracker
 {
     public class User
     {
-        public required int Id { get; set; }
-        public required string Name { get; set; }
-        public required string Password { get; set; }
-        public required Role UserRole { get; set; } = Role.GeneralUser;
+        private static int _nextId = 1;
+
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Password { get; set; }
+        public Role UserRole { get; set; } = Role.GeneralUser;
+
+        public User(string username, string password, Role role = Role.GeneralUser)
+        {
+            if (string.IsNullOrEmpty(username))
+            {
+                throw new ArgumentException("username cannot be empty or white space.", nameof(username));
+            }
+            if (string.IsNullOrEmpty(password))
+            {
+                throw new ArgumentException("Password cannot be empty or white space.", nameof(password));
+            }
+            Id = _nextId++;
+            Name = username;
+            Password = password;
+            UserRole = role;
+        }
 
         //TODO: allow users to create new accounts.
-        //TODO: add comment system.
-        //TODO: make this method bellow private by passing the data through
-        public static List<User> users = new List<User>
-        {
-            new User { Id = 1, Name = "admin", Password = "admin123", UserRole = Role.Admin },
-            new User { Id = 2, Name = "dev1", Password = "dev123", UserRole = Role.Developer },
-            new User { Id = 3, Name = "user1", Password = "user123", UserRole = Role.GeneralUser }
-        };
     }
 
     public enum Role
