@@ -9,6 +9,9 @@ namespace BugTracker
     public class BugService
     {
         private static int _nextId = 1;
+        /// <summary>
+        /// List of reported bugs.
+        /// </summary>
         public static List<ReportedBug> _bugs = new List<ReportedBug>();
 
         /// <summary>

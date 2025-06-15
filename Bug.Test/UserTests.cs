@@ -7,6 +7,9 @@ using BugTracker;
 
 namespace UserTests
 {
+    /// <summary>
+    /// Tests for the User class.
+    /// </summary>
     public class UserTests
     {
         [Theory]
