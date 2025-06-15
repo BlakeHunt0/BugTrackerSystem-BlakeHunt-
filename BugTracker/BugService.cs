@@ -25,7 +25,15 @@ namespace BugTracker
         }
         public Bug GetBugById(int id)
         {
-            return _bugs.FirstOrDefault(b => b.Id == id);
+            var bug = _bugs.FirstOrDefault(b => b.Id == id);
+            if (bug != null)
+            {
+                return bug;
+            }
+            else
+            {
+                throw new ArgumentException($"Bug with ID {id} not found.");
+            }
         }
         public bool CloseBug(int id)
         {
@@ -42,9 +50,22 @@ namespace BugTracker
             bug.DateClosed = DateTime.Now;
             return true;
         }
+        public bool DeleteBug(int id)
+        {
+            var bug = _bugs.FirstOrDefault(b => b.Id == id);
+            if (bug != null)
+            {
+                _bugs.Remove(bug);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
         public void NextStatus(int bugId)
         {
-            Bug bug = GetBugById(bugId);
+            var bug = _bugs.FirstOrDefault(b => b.Id == bugId);
             Status currentStatus = bug.Status;
 
             if (currentStatus == Status.Open)
@@ -63,7 +84,7 @@ namespace BugTracker
         }
         public void AssignSeverityToBug(int bugId, int severity)
         {
-            Bug bug = GetBugById(bugId);
+            var bug = _bugs.FirstOrDefault(b => b.Id == bugId);
             if (bug != null)
             {
                 if (severity == 1)
@@ -84,9 +105,25 @@ namespace BugTracker
                 }
             }
         }
+        public void AssignDevToBug (int bugId, int userId)
+        {
+            UserService userService = new UserService();
+
+            var bug = _bugs.FirstOrDefault(b => b.Id == bugId);
+            User user = userService.GetUserById(userId);
+
+            if (bug != null && user != null)
+            {
+                bug.AssignedTo = user.Name;
+            }
+            else
+            {
+                throw new ArgumentException($"Bug with ID {bugId} or User with ID {userId} not found.");
+            }
+        }
         public void AddCommentToBug(int bugId, int authorId, string text)
         {
-            Bug bug = GetBugById(bugId);
+            var bug = _bugs.FirstOrDefault(b => b.Id == bugId);
             if (bug != null)
             {
                 Comment comment = new Comment(authorId, text);
