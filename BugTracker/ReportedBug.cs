@@ -8,9 +8,8 @@ using System.Threading.Tasks;
 
 namespace BugTracker
 {
-    public class Bug
+    public class ReportedBug
     {
-        private static int _nextId = 1;
 
         public int Id { get; set; }
         public string Title { get; set; }
@@ -31,7 +30,7 @@ namespace BugTracker
 
         public List<Comment> Comments { get; set; } = new List<Comment>();
 
-        public Bug(string title, string description, int authorId)
+        public ReportedBug(string title, string description, int authorId)
         {
             UserService userService = new UserService();
             User user = userService.GetUserById(authorId);
@@ -40,7 +39,6 @@ namespace BugTracker
             {
                 throw new ArgumentException("Bug title cannot be empty or white space.", nameof(title));
             }
-            Id = _nextId++;
             Title = title;
             Description = description;
             AuthorId = authorId;

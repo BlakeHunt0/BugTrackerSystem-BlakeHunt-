@@ -15,11 +15,10 @@ namespace BugTracker
             UserService userService = new UserService();
 
             //initialize the bug and user lists
-            bugService.GetAllBugs();
+            bugService.InitializeData();
             userService.GetAllUsers();
 
-            User user = Login(userService);
-            ShowMenu(bugService, userService, user);
+            User user = Login(bugService,userService);
         }
         /// <summary>
         /// Asks for a username and password, 
@@ -27,7 +26,7 @@ namespace BugTracker
         /// then returns the user with matching credentials.
         /// </summary>
         /// <returns></returns>
-        public static User Login(UserService userService)
+        public static User Login(BugService bugService, UserService userService)
         {
             User curUser = null;
 
@@ -47,13 +46,14 @@ namespace BugTracker
                     Console.Clear();
                     Console.WriteLine($"Welcome {curUser.Name}!");
                     Console.ReadLine();
+                    ShowMenu(bugService, userService, curUser);
                 }
                 else
                 {
                     Console.Clear();
                     Console.WriteLine("Invalid username or password. Please try again.");
                     Console.ReadLine();
-                    Login(userService);
+                    Login(bugService, userService);
                 }
             }
             return curUser;
@@ -215,22 +215,8 @@ namespace BugTracker
 
                 string bugId = Console.ReadLine();
 
-                Console.Clear();
-
-                Bug lookedBug = bugSer.GetBugById(int.Parse(bugId));
-
-                Console.WriteLine(
-                    lookedBug.Title + " : " +  lookedBug.Description + "\n");
-                if (lookedBug.Author != null)
-                {
-                    Console.WriteLine(lookedBug.Author + "\n");
-                }
-                foreach (var comment in lookedBug.Comments)
-                {
-                    Console.WriteLine(comment + "\n");
-                }
-
-                CommentMenu(bugSer, userSer, user, lookedBug.Id);
+                PrintBugDetails(bugSer, userSer, user, int.Parse(bugId));
+                CommentMenu(bugSer, userSer, user, int.Parse(bugId));
             }
 
             Console.Clear();
@@ -238,10 +224,10 @@ namespace BugTracker
         }
         private static void UpdateBug(BugService bugSer, UserService userSer,  User user)
         {
-            PrintBugs(bugSer, user);
-
             if (user.UserRole == Role.Admin || user.UserRole == Role.Developer)
             {
+                PrintBugs(bugSer, user);
+
                 Console.WriteLine("What is the ID of the bug you are trying to change");
 
                 int bugId = int.Parse(Console.ReadLine());
@@ -254,7 +240,7 @@ namespace BugTracker
                     "2. Advance Bug Status\n"
                 );
 
-                Bug bug = bugSer.GetBugById(bugId);
+                ReportedBug bug = bugSer.GetBugById(bugId);
                 int input = int.Parse(Console.ReadLine());
 
                 if (input == 1)
@@ -287,54 +273,58 @@ namespace BugTracker
                 Console.WriteLine("Which bug would you like to edit");
                 int bugId = int.Parse(Console.ReadLine());
 
-                Bug bugToEdit = bugSer.GetBugById(bugId);
+                ReportedBug bugToEdit = bugSer.GetBugById(bugId);
 
-                Console.WriteLine("\nWhat would you like to do\n");
-                Console.WriteLine(
-                    "1. Edit Bug Title\n" +
-                    "2. Edit Bug Description\n"
-                );
-
-                int input = int.Parse(Console.ReadLine());
-
-                if (input == 1)
+                if (bugToEdit.AuthorId == user.Id)
                 {
-                    Console.Clear();
-                    Console.WriteLine("Input new title: \n");
+                    Console.WriteLine("\nWhat would you like to do\n");
+                    Console.WriteLine(
+                        "1. Edit Bug Title\n" +
+                        "2. Edit Bug Description\n"
+                    );
 
-                    string title = Console.ReadLine();
+                    int input = int.Parse(Console.ReadLine());
 
-                    if (!string.IsNullOrWhiteSpace(title))
+                    if (input == 1)
                     {
-                        bugToEdit.Title = title;
-                        Console.WriteLine("Title updated successfully");
-                        Console.ReadLine();
+                        Console.Clear();
+                        Console.WriteLine("Input new title: \n");
+
+                        string title = Console.ReadLine();
+
+                        if (!string.IsNullOrWhiteSpace(title))
+                        {
+                            bugToEdit.Title = title;
+                            Console.WriteLine("Title updated successfully");
+                            Console.ReadLine();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Title cannot be empty or whitespace");
+                            Console.ReadLine();
+                        }
                     }
-                    else
+                    if (input == 2)
                     {
-                        Console.WriteLine("Title cannot be empty or whitespace");
-                        Console.ReadLine();
+                        Console.Clear();
+                        Console.WriteLine("Input new description");
+
+                        string description = Console.ReadLine();
+
+                        if (!string.IsNullOrWhiteSpace(description))
+                        {
+                            bugToEdit.Description = description;
+                            Console.WriteLine("Description updated successfully");
+                            Console.ReadLine();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Description cannot be empty or whitespace");
+                            Console.ReadLine();
+                        }
                     }
                 }
-                if (input == 2)
-                {
-                    Console.Clear();
-                    Console.WriteLine("Input new description");
-
-                    string description = Console.ReadLine();
-
-                    if (!string.IsNullOrWhiteSpace(description))
-                    {
-                        bugToEdit.Description = description;
-                        Console.WriteLine("Description updated successfully");
-                        Console.ReadLine();
-                    }
-                    else
-                    {
-                        Console.WriteLine("Description cannot be empty or whitespace");
-                        Console.ReadLine();
-                    }
-                }
+                ViewBugs(bugSer, userSer, user);
             }
             ShowMenu(bugSer, userSer, user);
         }
@@ -354,7 +344,7 @@ namespace BugTracker
                 Console.WriteLine("Which bug would you like to delete");
                 int bugId = int.Parse(Console.ReadLine());
 
-                Bug bugToDelete = bugSer.GetBugById(bugId);
+                ReportedBug bugToDelete = bugSer.GetBugById(bugId);
                 if (bugToDelete != null)
                 {
                     Console.Clear();
@@ -388,10 +378,10 @@ namespace BugTracker
 
                     int bugId = int.Parse(Console.ReadLine());
 
-                    Bug bugToDelete = bugSer.GetBugById(bugId);
+                    ReportedBug bugToDelete = bugSer.GetBugById(bugId);
                     if (bugToDelete != null)
                     {
-                        bugSer.GetAllBugs().Remove(bugToDelete);
+                        bugSer.DeleteBug(bugToDelete.Id);
                         Console.WriteLine("Bug deleted successfully");
                         Console.ReadLine();
                     }
@@ -572,7 +562,7 @@ namespace BugTracker
                 Console.WriteLine(
                     bug.Id + ": " + bug.Title + "\n" +
                     bug.Description + "\n" +
-                    "Uploaded by - " + bug.Author
+                    "Uploaded by - " + bug.Author + "\n"
                 );
 
                 if (user.UserRole == Role.Admin || user.UserRole == Role.Developer)
@@ -588,7 +578,7 @@ namespace BugTracker
         {
             Console.Clear();
 
-            Bug bug = bugser.GetBugById(bugId);
+            ReportedBug bug = bugser.GetBugById(bugId);
             Console.WriteLine(
                     bug.Id + ": " + bug.Title + "\n" +
                     bug.Description + "\n" +
@@ -614,17 +604,34 @@ namespace BugTracker
             Console.WriteLine("\n\n1. Add Comment");
             Console.WriteLine("2. Back");
 
+            if (user.UserRole == Role.Admin || user.UserRole == Role.Developer)
+            {
+                Console.WriteLine("\n3. Close Bug");
+            }
+
             string input = Console.ReadLine();
 
-            if (input == "1")
+            if (input == "1" || (input == "3" && (user.UserRole == Role.Admin || user.UserRole == Role.Developer)))
             {
-                Console.WriteLine("\nPlease Write Comment");
-                string text = Console.ReadLine();
-                bugSer.AddCommentToBug(bugId, user.Id, text);
-                PrintBugDetails(bugSer, userSer, user, bugId);
+                if (input == "1")
+                {
+                    Console.WriteLine("\nPlease Write Comment");
+                    string text = Console.ReadLine();
+                    bugSer.AddCommentToBug(bugId, user.Id, text);
+                    Console.Clear();
+                    PrintBugDetails(bugSer, userSer, user, bugId);
+                }
+                if (input == "3")
+                {
+                    bugSer.CloseBug(bugId);
+                    Console.WriteLine("Bug status updated to " + bugSer.GetBugById(bugId).Status);
+                    Console.ReadLine();
+                    Console.Clear();
+                }
             }
             else
             {
+                Console.Clear();
                 ViewBugs(bugSer, userSer, user);
             }
         }

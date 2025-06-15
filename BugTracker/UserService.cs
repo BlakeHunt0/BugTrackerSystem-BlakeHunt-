@@ -8,17 +8,19 @@ namespace BugTracker
 {
     public class UserService
     {
-        private static readonly List<User> _users = new List<User>
+        private static int _nextId = 1;
+
+        public static readonly List<User> _users = new List<User>
         {
             new User ( "admin", "admin123", Role.Admin ),
             new User ( "dev1", "dev123", Role.Developer ),
             new User ( "user1", "user123")
         };
-
-        //TODO: allow only admins to change the roles of users.
         public void AddUser(string username, string password)
         {
             var newUser = new User(username, password);
+            newUser.Id = _nextId++;
+            _users.Add(newUser);
         }
 
         public List<User> GetAllUsers()
