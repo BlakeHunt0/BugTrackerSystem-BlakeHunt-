@@ -1,2 +1,3 @@
 ﻿This is the first time I have ever worked with XUnit tests. I like that it lets you get in there and test methods specifically without the use of the console or other test object. This obviously doesn't work in all cases, but you can rule out that the function of the method being used is outputting correctly.
 I feel like test also promote code modularity, since methods have to be simple enough that you can test the results of the method.
+I think I dropped off when we were learning Moq.
