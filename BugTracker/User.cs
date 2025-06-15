@@ -18,11 +18,11 @@ namespace BugTracker
 
         public User(string username, string password, Role role = Role.GeneralUser)
         {
-            if (string.IsNullOrEmpty(username))
+            if (string.IsNullOrEmpty(username) || string.IsNullOrWhiteSpace(username))
             {
                 throw new ArgumentException("username cannot be empty or white space.", nameof(username));
             }
-            if (string.IsNullOrEmpty(password))
+            if (string.IsNullOrEmpty(password) || string.IsNullOrWhiteSpace(password))
             {
                 throw new ArgumentException("Password cannot be empty or white space.", nameof(password));
             }
@@ -31,8 +31,6 @@ namespace BugTracker
             Password = password;
             UserRole = role;
         }
-
-        //TODO: allow users to create new accounts.
     }
 
     public enum Role
