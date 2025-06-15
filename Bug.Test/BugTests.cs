@@ -4,6 +4,9 @@ using BugTracker;
 
 namespace BugTest
 {
+    /// <summary>
+    /// Various Tests for the Bug class.
+    /// </summary>
     public class BugTests
     {
         /// <summary>
@@ -66,11 +69,17 @@ namespace BugTest
             Assert.Equal(Status.Closed, bug.Status);
         }
     }
-
+    
+    /// <summary>
+    /// Various tests for the BugService class.
+    /// </summary>
     public class BugServiceTests
     {
         //Arrange
         BugService bugService = new BugService();
+        /// <summary>
+        /// Checks if BugService.GetAllBugs returns a list of the initial bugs created to the _bugs List<>.
+        /// </summary>
         [Fact]
         public void GetAllBugs_ReturnsAllInitialBugs()
         {
@@ -81,12 +90,18 @@ namespace BugTest
             //Assert
             Assert.Equal(3, initList.Count);
         }
+        /// <summary>
+        /// Checks if GetAllBugs(); returns all of the bugs currently in the _bugs List<>.
+        /// </summary>
         [Fact]
         public void GetAllBugs_ReturnsCorrestNumberOfBugs()
         {
             //Act and Assert
             Assert.True(bugService.GetAllBugs().Count() == BugService._bugs.Count);
         }
+        /// <summary>
+        /// Makes sure that the AddBug(); method adds the new bug to the _bugs list correctly.
+        /// </summary>
         [Fact]
         public void AddBug_AddsToList()
         {
@@ -101,6 +116,10 @@ namespace BugTest
             Assert.Equal("admin", bugService.GetBugById(4).Author);
             Assert.Equal(Status.Open, bugService.GetBugById(4).Status);
         }
+        /// <summary>
+        /// Makes sure that GetBugById(); returns a bug that exists.
+        /// </summary>
+        //this test is flawed
         [Fact]
         public void GetBugById_ReturnsExistingId()
         {

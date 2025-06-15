@@ -6,7 +6,7 @@ namespace BugTracker
     public class Program
     {
         /// <summary>
-        /// Starts the Program
+        /// Starts the Program.
         /// </summary>
         /// <param name="args"></param>
         static void Main(string[] args)
@@ -20,6 +20,7 @@ namespace BugTracker
 
             User user = Login(bugService,userService);
         }
+
         /// <summary>
         /// Asks for a username and password, 
         /// checks if that user exists, 
@@ -179,7 +180,7 @@ namespace BugTracker
             ShowMenu(bugSer, userSer, user);
         }
         /// <summary>
-        /// Run a menu of diferent ways to view the bugs
+        /// Run a menu of diferent ways to view the bugs.
         /// </summary>
         /// <param name="bugSer"></param>
         /// <param name="user"></param>
@@ -222,6 +223,12 @@ namespace BugTracker
             Console.Clear();
             ShowMenu(bugSer, userSer, user);
         }
+        /// <summary>
+        /// Runs through different menus to update bugs based on the users role.
+        /// </summary>
+        /// <param name="bugSer"></param>
+        /// <param name="userSer"></param>
+        /// <param name="user"></param>
         private static void UpdateBug(BugService bugSer, UserService userSer,  User user)
         {
             if (user.UserRole == Role.Admin || user.UserRole == Role.Developer)
@@ -328,6 +335,12 @@ namespace BugTracker
             }
             ShowMenu(bugSer, userSer, user);
         }
+        /// <summary>
+        /// Allows general users to delete their own bugs, and allows users with higher privlages to delete any bug.
+        /// </summary>
+        /// <param name="bugSer"></param>
+        /// <param name="userSer"></param>
+        /// <param name="user"></param>
         private static void DeleteBug(BugService bugSer, UserService userSer, User user)
         {
             if (user.UserRole == Role.Admin || user.UserRole == Role.Developer)
@@ -397,6 +410,12 @@ namespace BugTracker
             ShowMenu(bugSer, userSer, user);
         }
         //----------------- Developer Menus -----------------
+        /// <summary>
+        /// Allows higher privlage users to assign severity to bugs.
+        /// </summary>
+        /// <param name="bugSer"></param>
+        /// <param name="userSer"></param>
+        /// <param name="user"></param>
         public static void AssignSeverity(BugService bugSer, UserService userSer, User user)
         {
             Console.Clear();
@@ -438,6 +457,12 @@ namespace BugTracker
         }
 
         //----------------- Admin Menus -----------------
+        /// <summary>
+        /// Allows admins to see all users.
+        /// </summary>
+        /// <param name="bugSer"></param>
+        /// <param name="userSer"></param>
+        /// <param name="user"></param>
         public static void ViewAllUsers(BugService bugSer, UserService userSer, User user)
         {
             PrintAllUsers(userSer);
@@ -464,6 +489,12 @@ namespace BugTracker
 
             ShowMenu(bugSer, userSer, user);
         }
+        /// <summary>
+        /// Allows admins to assign developers to fix a bug.
+        /// </summary>
+        /// <param name="bugSer"></param>
+        /// <param name="userSer"></param>
+        /// <param name="user"></param>
         public static void AssignDeveloperMenu(BugService bugSer, UserService userSer, User user)
         {
             int bugId;
@@ -498,7 +529,7 @@ namespace BugTracker
                 ShowMenu(bugSer, userSer, user);
             }
 
-            if (userValid)
+            if (userValid && userSer.GetUserById(userId).UserRole == Role.Developer)
             {
                 bugSer.AssignDevToBug(bugId, userId);
             }
@@ -511,6 +542,12 @@ namespace BugTracker
 
                 ShowMenu(bugSer, userSer, user);
         }
+        /// <summary>
+        /// Allows admins change a users role privlages.
+        /// </summary>
+        /// <param name="bugSer"></param>
+        /// <param name="userSer"></param>
+        /// <param name="user"></param>
         public static void UserPromotionMenu(BugService bugSer, UserService userSer, User user)
         {
             PrintAllUsers(userSer);
@@ -553,6 +590,11 @@ namespace BugTracker
         }
 
         //----------------- Repeat Menus -----------------
+        /// <summary>
+        /// Print all bugs found in the _bugs List.
+        /// </summary>
+        /// <param name="bugSer"></param>
+        /// <param name="user"></param>
         private static void PrintBugs(BugService bugSer, User user)
         {
             Console.Clear();
@@ -574,6 +616,13 @@ namespace BugTracker
                 }
             }
         }
+        /// <summary>
+        /// Prints a singular bugs details to view.
+        /// </summary>
+        /// <param name="bugser"></param>
+        /// <param name="userSer"></param>
+        /// <param name="user"></param>
+        /// <param name="bugId"></param>
         private static void PrintBugDetails(BugService bugser, UserService userSer, User user, int bugId)
         {
             Console.Clear();
@@ -599,6 +648,13 @@ namespace BugTracker
                 Console.WriteLine("Comment by " + userSer.GetUserById(comment.AuthorId).Name + ": " + comment.Text + "\n");
             }
         }
+        /// <summary>
+        /// Makes an appended comment menu to put under specific bugs.
+        /// </summary>
+        /// <param name="bugSer"></param>
+        /// <param name="userSer"></param>
+        /// <param name="user"></param>
+        /// <param name="bugId"></param>
         private static void CommentMenu(BugService bugSer, UserService userSer, User user, int bugId)
         {
             Console.WriteLine("\n\n1. Add Comment");
@@ -635,7 +691,10 @@ namespace BugTracker
                 ViewBugs(bugSer, userSer, user);
             }
         }
-
+        /// <summary>
+        /// Print all users for admins to view and work with.
+        /// </summary>
+        /// <param name="userSer"></param>
         private static void PrintAllUsers(UserService userSer)
         {
             Console.Clear();

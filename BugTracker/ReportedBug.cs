@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace BugTracker
 {
+    /// <summary>
+    /// Class for keeping track of the reported bugs in the application.
+    /// </summary>
     public class ReportedBug
     {
 
@@ -30,6 +33,13 @@ namespace BugTracker
 
         public List<Comment> Comments { get; set; } = new List<Comment>();
 
+        /// <summary>
+        /// Constructor to create bugs with valid credentials.
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="description"></param>
+        /// <param name="authorId"></param>
+        /// <exception cref="ArgumentException"></exception>
         public ReportedBug(string title, string description, int authorId)
         {
             UserService userService = new UserService();
@@ -47,6 +57,10 @@ namespace BugTracker
             UploadDate = DateTime.Now;
         }
 
+        /// <summary>
+        /// updates a bugs status
+        /// </summary>
+        /// <param name="newStatus"></param>
         public void UpdateBugStatus(Status newStatus)
         {
             if (newStatus == Status)
@@ -57,7 +71,9 @@ namespace BugTracker
             Status = newStatus;
         }
     }
-
+    /// <summary>
+    /// enum to assign a severity Level to a bug.
+    /// </summary>
     public enum SeverityLevel
     {
         Low,
@@ -65,6 +81,9 @@ namespace BugTracker
         High,
         Critical
     }
+    /// <summary>
+    /// enum to assign a status to a bug.
+    /// </summary>
     public enum Status
     {
         Open,
@@ -73,6 +92,9 @@ namespace BugTracker
         Closed
     }
 
+    /// <summary>
+    /// Class that saves commentor ID, and comment text to be saved in a bugs comment list for later viewing.
+    /// </summary>
     public class Comment
     {
         public int AuthorId { get; set; }

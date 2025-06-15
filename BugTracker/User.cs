@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace BugTracker
 {
+    /// <summary>
+    /// User class for managing accounts.
+    /// </summary>
     public class User
     {
         private static int _nextId = 1;
@@ -32,7 +35,9 @@ namespace BugTracker
             UserRole = role;
         }
     }
-
+    /// <summary>
+    /// An enum built into the User class that assigns privlages to that account.
+    /// </summary>
     public enum Role
     {
         Admin,
